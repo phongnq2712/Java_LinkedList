@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -15,6 +16,12 @@ public class Participant implements Winable {
 
     private int[] candyCollection;
 
+    private float monetaryValue;
+
+    private int utilityValue;
+
+    private ParticipantGroup participantGroup;
+
     public Participant(String participantID, String participantName, int[] candyCollection) {
         this.participantID = participantID;
         this.participantName = participantName;
@@ -31,8 +38,11 @@ public class Participant implements Winable {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter the new participant ID for cloning: ");
         String newParticipantID = scanner.nextLine();
+        if(!newParticipantID.isEmpty()) {
+            return new Participant(newParticipantID, this.participantName, this.candyCollection.clone());
+        }
 
-        return new Participant(newParticipantID, this.participantName, this.candyCollection.clone());
+        return null;
     }
     public String getParticipantID() {
         return participantID;
@@ -58,6 +68,30 @@ public class Participant implements Winable {
         this.candyCollection = candyCollection;
     }
 
+    public float getMonetaryValue() {
+        return monetaryValue;
+    }
+
+    public void setMonetaryValue(float monetaryValue) {
+        this.monetaryValue = monetaryValue;
+    }
+
+    public int getUtilityValue() {
+        return utilityValue;
+    }
+
+    public void setUtilityValue(int utilityValue) {
+        this.utilityValue = utilityValue;
+    }
+
+    public ParticipantGroup getParticipantGroup() {
+        return participantGroup;
+    }
+
+    public void setParticipantGroup(ParticipantGroup participantGroup) {
+        this.participantGroup = participantGroup;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -75,14 +109,38 @@ public class Participant implements Winable {
 
     @Override
     public String toString() {
-        return "Participant{" +
+        return "{" +
                 "participantID='" + participantID + '\'' +
                 ", participantName='" + participantName + '\'' +
                 ", candyCollection=" + Arrays.toString(candyCollection) +
                 '}';
     }
+
+    /**
+     * The method isInTheTopThree
+     * that takes in another Participant object P and should return true if P is from the
+     * same group as the current participant object, or vise versa; otherwise it returns false
+     * @param p
+     * @return
+     */
     @Override
     public boolean isInTheTopThree(Participant p) {
-        return false;
+        boolean currentIsInTopThree = this.participantGroup.getTopThree().contains(this.getParticipantID(), false);
+        boolean paramIsInTopThree = p.participantGroup.getTopThree().contains(p.getParticipantID(), false);
+
+        return currentIsInTopThree && paramIsInTopThree;
+    }
+
+    public void calculateValues(Participant participant, ArrayList<Candy> candies) {
+        float totalMonetary = 0;
+        int totalUtility = 0;
+        int[] candyCollection = participant.getCandyCollection();
+        for(int i = 0; i < candyCollection.length; i++) {
+            totalMonetary += candyCollection[i] * candies.get(i).getMonetaryValue();
+            participant.setMonetaryValue(totalMonetary);
+            totalUtility += candyCollection[i] * candies.get(i).getUtilityValue();
+            participant.setUtilityValue(totalUtility);
+        }
+        System.out.println(participant.getParticipantName() + ": " + totalMonetary + "--" + totalUtility);
     }
 }

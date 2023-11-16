@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -31,9 +32,13 @@ public class ParticipantList {
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter the new participant ID for cloning: ");
             String newParticipantID = scanner.nextLine();
-            Participant participant = new Participant(this.participant, newParticipantID);
+            if(!newParticipantID.isEmpty()) {
+                Participant participant = new Participant(this.participant, newParticipantID);
 
-            return new ParticipantNode(participant, this.next);
+                return new ParticipantNode(participant, this.next);
+            }
+
+            return null;
         }
         public Participant getParticipant() {
             return participant;
@@ -49,6 +54,10 @@ public class ParticipantList {
 
         public void setNext(ParticipantNode next) {
             this.next = next;
+        }
+
+        public String toString() {
+            return participant.toString();
         }
     }
     private ParticipantNode head;
@@ -66,18 +75,23 @@ public class ParticipantList {
     public ParticipantList(ParticipantList participantList) {
         this.head = null;
         this.size = 0;
-        if(participantList != null) {
-            this.head = new ParticipantNode(participantList.head);
 
-            ParticipantNode newNode = this.head;
-            ParticipantNode otherNode = participantList.head;
-
-            while(otherNode.getNext() != null) {
-                newNode.setNext(new ParticipantNode(otherNode.getNext()));
-                newNode = newNode.getNext();
-            }
-            this.size = participantList.size;
+        ParticipantNode currentNode = participantList.head;
+        while(currentNode != null) {
+            this.addToStart(currentNode.getParticipant());
+            currentNode = currentNode.getNext();
         }
+    }
+
+    public ArrayList<Participant> toArrayList() {
+        ArrayList<Participant> participantArray = new ArrayList<>();
+        ParticipantNode currentNode = this.head;
+        while(currentNode != null) {
+            participantArray.add(currentNode.getParticipant());
+            currentNode = currentNode.getNext();
+        }
+
+        return participantArray;
     }
 
     public boolean isEmpty() {
@@ -232,7 +246,7 @@ public class ParticipantList {
      * @param participantID
      * @return
      */
-    public ParticipantNode find(String participantID) {
+    public ParticipantNode find(String participantID, boolean displayMsg) {
         if(isEmpty()) {
             System.out.println("List is empty!");
 
@@ -241,34 +255,72 @@ public class ParticipantList {
         // keep track the number of iterations
         int count = 0;
         ParticipantNode currentNode = this.head;
-        while(currentNode != null) {
-            count ++;
-            if(participantID.equals(currentNode.getParticipant().getParticipantID())) {
-                return currentNode;
+        if(!participantID.isEmpty()) {
+            while(currentNode != null) {
+                count ++;
+                if(participantID.equals(currentNode.getParticipant().getParticipantID())) {
+                    if(displayMsg) {
+                        System.out.println("Participant ID: " + participantID + " is found!");
+                        System.out.println(currentNode.participant);
+                        System.out.println("Number of iterations performed: " + count);
+                    }
+
+                    return currentNode;
+                }
+                // move on to the next node
+                currentNode = currentNode.getNext();
             }
-            // move on to the next node
-            currentNode = currentNode.getNext();
+        } else {
+            System.out.println("Participant ID is empty.");
+
+            return null;
+        }
+        if(displayMsg) {
+            System.out.println("Participant ID: " + participantID + " is not found!");
+            System.out.println("Number of iterations performed: " + count);
         }
 
         return null;
     }
 
     /**
-     *
+     * Method returns true if a participant with that participantID is in
+     * the list; otherwise, the method returns false.
      * @param participantID
      * @return
      */
-    public boolean contains(String participantID) {
-
-        return true;
+    public boolean contains(String participantID, boolean displayMsg) {
+        return (find(participantID, displayMsg) != null);
     }
 
     /**
-     *
+     * Checking two lists contain similar participants, except for the participantID.
      * @param participantList
      */
-    public void equals(ParticipantList participantList) {
+    public boolean equals(ParticipantList participantList) {
+        if(participantList == null) {
+            return false;
+        } else if (getClass() != participantList.getClass()) {
+            return false;
+        } else {
+            // check the sizes of two list
+            if(this.size != participantList.getSize()) {
+                return false;
+            }
+            ParticipantNode currentNode = this.head;
+            ParticipantNode otherNode = participantList.head;
 
+            while(currentNode != null) {
+                if(!currentNode.getParticipant().equals(otherNode.getParticipant())) {
+                    return false;
+                }
+                currentNode = currentNode.getNext();
+                otherNode = otherNode.getNext();
+            }
+
+            // return true if all participants in two lists are equal
+            return true;
+        }
     }
 
     /**
@@ -280,7 +332,6 @@ public class ParticipantList {
         while(current != null) {
             System.out.println(current);
             System.out.println(" -> ");
-            System.out.println(current.getNext());
             current = current.getNext();
         }
         System.out.println("NULL");
